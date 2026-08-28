@@ -1,0 +1,35 @@
+.env
+node_modules
+# Dependencies
+node_modules/
+
+# Environment files (keep the committed template)
+.env*
+!.env.example
+
+# Build and generated output
+dist/
+coverage/
+*.tsbuildinfo
+
+# Prisma generated client
+/src/generated/prisma/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Local databases
+*.db
+*.db-journal
+
+# OS and editor settings
+.DS_Store
+Thumbs.db
+.vscode/
+.claude/
+.windsurf/
+.agents/

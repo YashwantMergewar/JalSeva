@@ -1,0 +1,19 @@
+{
+  "expo": {
+    "name": "Jal Seva",
+    "slug": "jal-seva",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "scheme": "jalseva",
+    "userInterfaceStyle": "automatic",
+    "ios": {},
+    "android": {},
+    "web": {
+      "output": "static"
+    },
+    "plugins": [
+      "expo-router"
+    ],
+    "experiments": { "typedRoutes": true }
+  }
+}
