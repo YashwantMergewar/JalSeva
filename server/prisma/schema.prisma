@@ -11,3 +11,360 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserType {  
+  CITIZEN  
+  EMPLOYEE  
+  PLUMBER  
+  ADMIN 
+  } 
+
+  enum ScheduleStatus {  
+    SCHEDULED  
+    ONGOING  
+    COMPLETED  
+    CANCELLED 
+    }
+
+  enum DispatchStatus {  
+    PENDING 
+    DISPATCHED  
+    IN_PROGRESS  
+    COMPLETED  
+    CANCELLED 
+    }
+
+  enum ComplaintStatus {  
+    PENDING  
+    ASSIGNED  
+    IN_PROGRESS  
+    RESOLVED  
+    REJECTED  
+    CLOSED 
+    }
+
+  enum ComplaintPriority {  
+    LOW 
+    MEDIUM  
+    HIGH  
+    URGENT 
+    }
+
+  enum FileType {  
+    IMAGE  
+    PDF  
+    VIDEO  
+    DOCUMENT 
+    }
+
+  enum NotificationType {  
+    INFO  
+    WARNING  
+    ALERT  
+    COMPLAINT_UPDATE 
+    SCHEDULE_UPDATE 
+    }
+
+  enum AuditAction {  
+    CREATE  
+    UPDATE  
+    DELETE 
+    }
+
+  enum EntityType {  
+    USER  
+    COMPLAINT  
+    WATER_SCHEDULE  
+    WATER_DISPATCH 
+    DEPARTMENT  
+    ADDRESS
+  }
+
+model Role {
+  id        String     @id @default(cuid()) 
+  name      String   
+  description String?
+  createdAt DateTime @default(now())
+  users     User[]
+  @@map("roles")
+  }
+
+model User {
+  id        String      @id @default(cuid()) 
+  fullname  String
+  password_hash String @map("password_hash")
+  mobile_no String   @map("mobile_no")
+  email     String   @unique
+  userType UserType 
+  roleId   String       
+  isActive  Boolean  @default(true) 
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  role      Role     @relation(fields: [roleId], references: [id])
+
+  employeeDepartment    EmployeeDepartment[]
+  addresses             Address[]
+  complaintsAsCitizen   Complaint[]            @relation("ComplaintsByCitizen")  
+  complaintsAssignedTo  ComplaintAssignment[]  @relation("AssignedToUser")  
+  complaintsAssignedBy  ComplaintAssignment[]  @relation("AssignedByUser")  
+  attachmentsUploaded   ComplaintAttachment[]  
+  waterSchedulesCreated WaterSchedule[]  
+  waterDispatchesAsPlumber WaterDispatch[]  @relation("WaterDispatchesAsPlumber")
+  scheduleChangesMade   ScheduleChangeHistory[]  
+  notifications         Notification[]  
+  refreshTokens         RefreshToken[]  
+  auditLogs             AuditLog[]  
+  
+  @@index([roleId])  
+  @@map("users")
+}
+
+model RefreshToken {  
+  id         String    @id @default(cuid())  
+  userId     String  
+  tokenHash  String
+deviceInfo String?  
+ipAddress  String?  
+expiresAt  DateTime  
+revokedAt  DateTime?  
+createdAt  DateTime  @default(now())  
+user User @relation(fields: [userId], references: [id])  
+@@index([userId])  
+@@map("refresh_tokens") 
+}
+
+model Department {  
+id          String   @id @default(cuid())  
+name        String  
+description String?  
+isActive    Boolean  @default(true)  
+createdAt   DateTime @default(now())  
+updatedAt   DateTime @updatedAt 
+employeeDepartments EmployeeDepartment[]  
+complaints          Complaint[]  
+complaintCategories ComplaintCategory[] 
+
+@@map("departments") 
+}
+
+model EmployeeDepartment {  
+id           String   @id @default(cuid())  
+departmentId String  
+employeeId   String  
+isActive     Boolean  @default(true)  
+assignedAt   DateTime @default(now())
+
+department Department @relation(fields: [departmentId], references: [id])  
+employee   User       @relation(fields: [employeeId], references: [id])
+
+@@index([departmentId])  
+@@index([employeeId])  
+@@map("employee_departments")
+}
+
+model Ward {  
+id          String   @id @default(cuid())  
+wardNumber  Int  
+name        String  
+description String?  
+isActive    Boolean  @default(true)  
+createdAt   DateTime @default(now())  
+updatedAt   DateTime @updatedAt  
+addresses      Address[]  
+waterSchedules WaterSchedule[]  
+@@map("wards") 
+}
+
+model Address {  
+id          String   @id @default(cuid())  
+houseNumber String  
+streetName  String  
+areaName    String
+landmark    String?  
+wardId      String  
+userId      String  
+createdAt   DateTime @default(now())  
+updatedAt   DateTime @updatedAt
+
+ ward Ward @relation(fields: [wardId], references: [id])  
+ user User @relation(fields: [userId], references: [id])  
+ complaints Complaint[]  
+ @@index([wardId])  
+ @@index([userId])  
+ @@map("addresses") 
+ }
+
+model WaterSchedule {  
+id            String         @id @default(cuid())  
+wardId        String  
+scheduledDate DateTime       @db.Date  
+startTime     DateTime  
+endTime       DateTime  
+status        ScheduleStatus  
+createdAt     DateTime       @default(now())  
+updatedAt     DateTime       @updatedAt  
+createdBy     String  
+
+ward    Ward @relation(fields: [wardId], references: [id])  
+creator User @relation(fields: [createdBy], references: [id])  
+
+changeHistory ScheduleChangeHistory[]  
+dispatches    WaterDispatch[]  
+
+@@index([wardId])  
+@@index([createdBy])  
+@@map("water_schedules") 
+} 
+
+model ScheduleChangeHistory {
+id            String    @id @default(cuid())  
+oldStartTime  DateTime?  
+oldEndTime    DateTime?  
+newStartTime  DateTime?  
+newEndTime    DateTime?  
+reason        String? 
+changedAt     DateTime  @default(now()) 
+
+scheduleId    String  
+changedBy     String
+
+schedule WaterSchedule @relation(fields: [scheduleId], references: [id])  
+changer  User          @relation(fields: [changedBy], references: [id])
+
+@@index([scheduleId])  
+@@index([changedBy])  
+@@map("schedule_changes_history") 
+}
+
+model WaterDispatch {  
+id              String         @id @default(cuid())  
+dispatchStatus  DispatchStatus  
+scheduleId      String
+ actualStartTime DateTime?  
+ actualEndTime   DateTime?  
+ remarks         String?  
+ tartedAt       DateTime?  
+ completedAt     DateTime?  
+ createdAt       DateTime       @default(now())  
+ updatedAt       DateTime       @updatedAt  
+ plumberId       String
+
+ schedule WaterSchedule @relation(fields: [scheduleId], references: [id])  
+ plumber  User          @relation("WaterDispatchesAsPlumber", fields: [plumberId], references: [id])
+
+ @@index([scheduleId])  
+ @@index([plumberId])  
+ @@map("water_dispatches") 
+ }
+
+ model ComplaintCategory {  
+   id           String   @id @default(cuid())
+   name         String  
+   description  String?  
+   isActive     Boolean  @default(true)  
+   createdAt    DateTime @default(now())  
+   updatedAt    DateTime @updatedAt  
+   departmentId String
+
+   department Department  @relation(fields: [departmentId], references: [id])  
+   complaints Complaint[]
+
+    @@index([departmentId])  
+    @@map("complaints_categories")
+ }
+
+ model Complaint {  
+ id           String            @id @default(cuid())  
+ categoryId   String  
+ description  String  
+ status       ComplaintStatus  
+ priority     ComplaintPriority  
+ createdAt    DateTime          @default(now())  
+ updatedAt    DateTime          @updatedAt
+  resolvedAt   DateTime?  
+  addressId    String  
+  departmentId String  
+  citizenId    String
+
+  category   ComplaintCategory @relation(fields: [categoryId], references: [id])  
+  address    Address           @relation(fields: [addressId], references: [id])  
+  department Department        @relation(fields: [departmentId], references: [id])  
+  citizen    User              @relation("ComplaintsByCitizen", fields: [citizenId], references: [id])  
+  attachments ComplaintAttachment[]
+  assignments ComplaintAssignment[]
+
+  @@index([categoryId])  
+  @@index([addressId]) 
+  @@index([departmentId])  
+  @@index([citizenId])  
+  @@map("complaints") 
+  }
+
+  model ComplaintAttachment {
+  id          String   @id @default(cuid())
+  complaintId String
+  fileUrl     String
+  fileType    FileType
+  createdAt   DateTime @default(now())
+  uploadedBy  String
+
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  uploader  User      @relation(fields: [uploadedBy], references: [id])
+
+  @@index([complaintId])
+  @@index([uploadedBy])
+  @@map("complaint_attachments")
+}
+
+model ComplaintAssignment {
+  id           String    @id @default(cuid())
+  complaintId  String
+  assignedTo   String
+  assignedBy   String
+  assignedAt   DateTime  @default(now())
+  unassignedAt DateTime?
+  remarks      String?
+
+  complaint Complaint @relation(fields: [complaintId], references: [id])
+  assignee  User      @relation("AssignedToUser", fields: [assignedTo], references: [id])
+  assigner  User      @relation("AssignedByUser", fields: [assignedBy], references: [id])
+
+  @@index([complaintId])
+  @@index([assignedTo])
+  @@index([assignedBy])
+  @@map("complaint_assignments")
+}
+
+model Notification {
+  id          String           @id @default(cuid())
+  referenceId String?          // polymorphic pointer (complaint, dispatch, schedule, etc.) - not a hard FK
+  userId      String
+  title       String
+  message     String
+  type        NotificationType
+  isRead      Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  readAt      DateTime?
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("notifications")
+}
+
+model AuditLog {
+  id         String      @id @default(cuid())
+  entityId   String      // polymorphic pointer to the affected row - not a hard FK
+  userId     String
+  action     AuditAction
+  entityType EntityType
+  oldData    Json?
+  newData    Json?
+  createdAt  DateTime    @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@map("audit_logs")
+}
