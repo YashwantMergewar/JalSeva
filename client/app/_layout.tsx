@@ -3,7 +3,8 @@ import "../src/global.css";
 import { Stack } from "expo-router";
 import * as ExpoSplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
-import SplashScreen from "../src/components/SplashScreen";
+import { SafeAreaProvider } from "react-native-safe-area-context";
+import SplashScreen from './../src/screens/SplashScreen';
 
 ExpoSplashScreen.preventAutoHideAsync();
 
@@ -25,5 +26,9 @@ export default function RootLayout() {
     return <SplashScreen />;
   }
 
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <SafeAreaProvider>
+      <Stack initialRouteName="welcome" screenOptions={{ headerShown: false }} />
+    </SafeAreaProvider>
+  );
 }
