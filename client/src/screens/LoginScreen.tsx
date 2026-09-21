@@ -1,6 +1,16 @@
 import { ArrowLeft, Landmark, EyeOff } from "lucide-react-native";
 import { Image } from "expo-image";
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View, useWindowDimensions } from "react-native";
+import {
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+  useWindowDimensions,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type LoginScreenProps = { onBack: () => void; onLogin: () => void };
@@ -11,7 +21,17 @@ export default function LoginScreen({ onBack, onLogin }: LoginScreenProps) {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-    <ScrollView style={styles.container} contentContainerStyle={styles.containerContent} keyboardShouldPersistTaps="handled">
+    <KeyboardAvoidingView
+      style={styles.keyboardAvoidingView}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+    >
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.containerContent}
+      keyboardShouldPersistTaps="handled"
+      keyboardDismissMode="on-drag"
+      automaticallyAdjustKeyboardInsets
+    >
       <View style={styles.brand}>
         <Pressable onPress={onBack} style={styles.back}>
           <ArrowLeft color="#0649aa" size={22} strokeWidth={1.8} />
@@ -70,12 +90,14 @@ export default function LoginScreen({ onBack, onLogin }: LoginScreenProps) {
         </Text>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: "#fbf9f8" },
+  keyboardAvoidingView: { flex: 1 },
   container: { flex: 1, backgroundColor: "#fbf9f8" },
   containerContent: { padding: 14, paddingBottom: 24 },
   brand: { flexDirection: "row", alignItems: "center", marginTop: 4, gap: 10 },

@@ -7,7 +7,9 @@
     "scheme": "jalseva",
     "userInterfaceStyle": "automatic",
     "ios": {},
-    "android": {},
+    "android": {
+      "softwareKeyboardLayoutMode": "resize"
+    },
     "web": {
       "output": "static"
     },
