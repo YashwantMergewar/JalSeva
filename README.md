@@ -67,9 +67,11 @@ On macOS/Linux, use `cp .env.example .env` instead. Update `DATABASE_URL` in `.e
 
 ```env
 NODE_ENV=development
-PORT=3000
+PORT=5000
 DATABASE_URL="postgresql://postgres:postgres@localhost:5432/jalsevadb?schema=public"
 ```
+
+Set `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` in `server/.env` to different random values of at least 32 characters each.
 
 Install dependencies, generate the Prisma client, apply database migrations, and start the API:
 
@@ -130,8 +132,12 @@ It starts Expo and invokes the server development script. Running the client and
 To run the full container stack from the repository root:
 
 ```bash
+copy server\.env.example server\.env
+# Replace the example ACCESS_TOKEN_SECRET and REFRESH_TOKEN_SECRET values.
 docker compose up --build
 ```
+
+The API container loads its required settings from `server/.env`; its database URL is overridden to use the Compose `postgres` service.
 
 This starts:
 
