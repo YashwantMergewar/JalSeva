@@ -7,7 +7,8 @@ export default function LoginRoute() {
   return (
     <LoginScreen
       onBack={() => router.back()}
-      onLogin={() => router.replace("/index")}
+      onLogin={() => router.replace("/(citizen)" as any)}
+      onRegister={() => router.push("/register")}
     />
   );
 }

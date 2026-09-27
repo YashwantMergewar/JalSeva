@@ -3,7 +3,9 @@ import OnboardingFlow from "../src/screens/OnboardingFlow";
 
 export default function OnboardingRoute() {
   const router = useRouter();
-  const goHome = () => router.replace("/index");
 
-  return <OnboardingFlow onSkip={goHome} onComplete={goHome} />;
+  // Both Skip and Complete go to the guest home screen (tabs)
+  const goGuestHome = () => router.replace("/(tabs)");
+
+  return <OnboardingFlow onSkip={goGuestHome} onComplete={goGuestHome} />;
 }

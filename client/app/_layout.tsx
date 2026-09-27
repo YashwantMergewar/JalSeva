@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SplashScreen from './../src/screens/SplashScreen';
 
+import { AuthProvider } from "../src/context";
+
 ExpoSplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -28,7 +30,9 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <Stack initialRouteName="welcome" screenOptions={{ headerShown: false }} />
+      <AuthProvider>
+        <Stack initialRouteName="welcome" screenOptions={{ headerShown: false }} />
+      </AuthProvider>
     </SafeAreaProvider>
   );
 }

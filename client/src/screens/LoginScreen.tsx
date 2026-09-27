@@ -1,6 +1,7 @@
-import { ArrowLeft, Landmark, EyeOff } from "lucide-react-native";
+import { ArrowLeft, Landmark, Eye, EyeOff } from "lucide-react-native";
 import { Image } from "expo-image";
 import {
+  ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -11,13 +12,42 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
+import { useState } from "react";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { getApiErrorMessage } from "../api";
+import { loginSchema, type LoginValues } from "../validation";
+import { useAuth } from "../context/AuthContext";
 
-type LoginScreenProps = { onBack: () => void; onLogin: () => void };
+type LoginScreenProps = { onBack: () => void; onLogin: () => void; onRegister?: () => void };
 
-export default function LoginScreen({ onBack, onLogin }: LoginScreenProps) {
+export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreenProps) {
   const { width } = useWindowDimensions();
   const compact = width < 420;
+  const { login } = useAuth();
+  const [values, setValues] = useState<LoginValues>({ identifier: "", password: "" });
+  const [errors, setErrors] = useState<Partial<Record<keyof LoginValues, string>>>({});
+  const [apiError, setApiError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  const submit = async () => {
+    const parsed = loginSchema.safeParse(values);
+    if (!parsed.success) {
+      setErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0], issue.message])));
+      return;
+    }
+    setErrors({});
+    setApiError("");
+    setSubmitting(true);
+    try {
+      await login(parsed.data);
+      onLogin();
+    } catch (error) {
+      setApiError(getApiErrorMessage(error, "Unable to sign in. Please verify your credentials and try again."));
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
@@ -56,37 +86,62 @@ export default function LoginScreen({ onBack, onLogin }: LoginScreenProps) {
           Welcome back! Please enter your{`\n`}details.
         </Text>
         <Text style={[styles.label, compact && styles.labelCompact]}>Mobile number or Email</Text>
-        <View style={styles.phoneInput}>
-          <Text style={styles.prefix}>+91</Text>
+        <View style={[styles.phoneInput, errors.identifier && styles.inputInvalid]}>
           <TextInput
             style={styles.input}
+            value={values.identifier}
+            onChangeText={(identifier) => {
+              setValues((current) => ({ ...current, identifier }));
+              setErrors((current) => ({ ...current, identifier: undefined }));
+              setApiError("");
+            }}
             placeholder="Enter mobile or email"
             placeholderTextColor="#9da0aa"
+            autoCapitalize="none"
+            keyboardType="default"
           />
         </View>
+        {errors.identifier && <Text style={styles.errorText}>{errors.identifier}</Text>}
         <View style={[styles.passwordLabel, compact && styles.passwordLabelCompact]}>
           <Text style={[styles.label, compact && styles.labelCompact]}>Password</Text>
           <Pressable>
             <Text style={[styles.forgot, compact && styles.forgotCompact]}>Forgot Password?</Text>
           </Pressable>
         </View>
-        <View style={styles.passwordInput}>
+        <View style={[styles.passwordInput, errors.password && styles.inputInvalid]}>
           <TextInput
-            secureTextEntry
+            secureTextEntry={!showPassword}
             style={styles.input}
+            value={values.password}
+            onChangeText={(password) => {
+              setValues((current) => ({ ...current, password }));
+              setErrors((current) => ({ ...current, password: undefined }));
+              setApiError("");
+            }}
             placeholder="Enter your password"
             placeholderTextColor="#9da0aa"
           />
-          <EyeOff size={25} color="#3f4350" strokeWidth={1.8} />
+          <Pressable onPress={() => setShowPassword((shown) => !shown)} hitSlop={8}>
+            {showPassword ? <Eye size={25} color="#3f4350" strokeWidth={1.8} /> : <EyeOff size={25} color="#3f4350" strokeWidth={1.8} />}
+          </Pressable>
         </View>
-        <Pressable style={[styles.primary, compact && styles.buttonCompact]} onPress={onLogin}>
-          <Text style={[styles.primaryText, compact && styles.buttonTextCompact]}>Login</Text>
+        {errors.password && <Text style={styles.errorText}>{errors.password}</Text>}
+        {apiError ? <Text style={styles.apiErrorText}>{apiError}</Text> : null}
+        <Pressable disabled={submitting} style={[styles.primary, compact && styles.buttonCompact, submitting && styles.disabled]} onPress={submit}>
+          {submitting ? (
+            <ActivityIndicator color="#ffffff" size="small" />
+          ) : (
+            <Text style={[styles.primaryText, compact && styles.buttonTextCompact]}>Login</Text>
+          )}
         </Pressable>
         <Pressable style={[styles.otp, compact && styles.buttonCompact]}>
           <Text style={[styles.otpText, compact && styles.buttonTextCompact]}>Login with OTP</Text>
         </Pressable>
         <Text style={[styles.register, compact && styles.registerCompact]}>
-          New user? <Text style={styles.registerLink}>Register</Text>
+          New user?{" "}
+          <Text style={styles.registerLink} onPress={onRegister}>
+            Register
+          </Text>
         </Text>
       </View>
     </ScrollView>
@@ -166,6 +221,18 @@ const styles = StyleSheet.create({
     height: "100%",
     textAlignVertical: "center",
   },
+  inputInvalid: { borderColor: "#b3261e" },
+  errorText: { color: "#b3261e", fontSize: 13, marginTop: 6 },
+  apiErrorText: {
+    color: "#ba1a1a",
+    fontSize: 14,
+    fontWeight: "500",
+    backgroundColor: "#ffdad6",
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 12,
+    textAlign: "center",
+  },
   input: { flex: 1, fontSize: 16, paddingHorizontal: 14, color: "#111111" },
   passwordLabel: {
     flexDirection: "row",
@@ -194,6 +261,7 @@ const styles = StyleSheet.create({
     marginTop: 26,
   },
   primaryText: { color: "#ffffff", fontSize: 21, fontWeight: "700" },
+  disabled: { opacity: 0.65 },
   otp: {
     height: 60,
     borderWidth: 3,

@@ -22,6 +22,12 @@ app.use(express.urlencoded({extended: true, limit: "16kb"}));
 app.use(express.static("public"));
 app.use(cookieParser());
 
+app.use((req, _res, next) => {
+    console.log(`[API] ${req.method} ${req.originalUrl}`);
+    next();
+});
+
+app.use("/api/v1/users", userRouter);
 app.use("/api/users", userRouter);
 
 

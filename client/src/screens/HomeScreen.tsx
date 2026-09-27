@@ -14,14 +14,14 @@ import { NavigationBar } from "expo-navigation-bar";
 import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-type HomeScreenProps = { onLogin: () => void };
+type HomeScreenProps = { onLogin: () => void; onRegister?: () => void };
 
 const icon = (name: "drop" | "menu" | "home" | "login", color: string, size = 24) => {
   const Icon = name === "drop" ? Droplets : name === "menu" ? Menu : name === "home" ? House : LogIn;
   return <Icon color={color} size={size} strokeWidth={1.8} />;
 };
 
-export default function HomeScreen({ onLogin }: HomeScreenProps) {
+export default function HomeScreen({ onLogin, onRegister }: HomeScreenProps) {
   return (
     <SafeAreaView
       style={styles.container}
@@ -50,7 +50,7 @@ export default function HomeScreen({ onLogin }: HomeScreenProps) {
             {icon("login", "#0649aa", 16)}
             <Text style={styles.welcomeLoginText}>Login</Text>
           </Pressable>
-          <Pressable style={styles.register}>
+          <Pressable style={styles.register} onPress={onRegister}>
             <Text style={styles.registerText}>Register</Text>
           </Pressable>
         </View>

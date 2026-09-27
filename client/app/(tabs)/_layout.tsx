@@ -52,6 +52,9 @@ export default function TabsLayout() {
           tabBarIcon: ({ color }) => <UserRound color={color} size={24} strokeWidth={1.8} />,
         }}
       />
+      {/* citizen-only tabs – hidden from guest tab bar */}
+      <Tabs.Screen name="services" options={{ href: null }} />
+      <Tabs.Screen name="bills" options={{ href: null }} />
     </Tabs>
   );
 }
