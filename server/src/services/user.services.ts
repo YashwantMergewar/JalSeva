@@ -52,6 +52,10 @@ const setRefreshCookie = (res: Response, token: string) => {
 
 const clearRefreshCookie = (res: Response) => {
     res.clearCookie(refreshTokenCookieName, clearRefreshTokenCookieOptions);
+    res.clearCookie(refreshTokenCookieName, {
+        ...clearRefreshTokenCookieOptions,
+        path: "/api/users",
+    });
 };
 
 const toAuthUserType = (value: string): AuthenticatedUser["userType"] =>
@@ -185,22 +189,72 @@ export const refreshAccessToken = async (
 export const logout = async (
     refreshToken: string | undefined,
     res: Response,
+    userId?: string,
 ) => {
     if (refreshToken) {
+        const tokenHash = hashRefreshToken(refreshToken);
+        const existingToken = await prisma.refreshToken.findFirst({
+            where: { tokenHash },
+        });
+
+        if (existingToken) {
+            if (existingToken.revokedAt !== null) {
+                clearRefreshCookie(res);
+                throw new ApiError(400, "User already logged out");
+            }
+
+            await prisma.refreshToken.update({
+                where: { id: existingToken.id },
+                data: { revokedAt: new Date() },
+            });
+
+            clearRefreshCookie(res);
+            return;
+        }
+    }
+
+    if (userId) {
+        const activeTokens = await prisma.refreshToken.findMany({
+            where: {
+                userId,
+                revokedAt: null,
+            },
+        });
+
+        if (activeTokens.length === 0) {
+            clearRefreshCookie(res);
+            throw new ApiError(400, "User already logged out");
+        }
+
         await prisma.refreshToken.updateMany({
             where: {
-                tokenHash: hashRefreshToken(refreshToken),
+                userId,
                 revokedAt: null,
             },
             data: { revokedAt: new Date() },
         });
+
+        clearRefreshCookie(res);
+        return;
     }
 
     clearRefreshCookie(res);
+    throw new ApiError(400, "User already logged out");
 };
 
-//Unused function
-export const logoutAll = async (userId: string) => {
+export const logoutAll = async (userId: string, res?: Response) => {
+    const activeTokens = await prisma.refreshToken.findMany({
+        where: {
+            userId,
+            revokedAt: null,
+        },
+    });
+
+    if (activeTokens.length === 0) {
+        if (res) clearRefreshCookie(res);
+        throw new ApiError(400, "User already logged out");
+    }
+
     await prisma.refreshToken.updateMany({
         where: {
             userId,
@@ -208,6 +262,8 @@ export const logoutAll = async (userId: string) => {
         },
         data: { revokedAt: new Date() },
     });
+
+    if (res) clearRefreshCookie(res);
 };
 
 export const getCurrentUser = async (userId: string) => {

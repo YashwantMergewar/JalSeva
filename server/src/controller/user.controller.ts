@@ -16,6 +16,8 @@ import {
     refreshAccessToken,
 } from "../services/user.services.js";
 
+import { refreshTokenCookieName } from "../config/cookies.js";
+
 const getValidationErrors = (error: ZodError) =>
     error.issues.map(({ path, message }) => ({ path, message }));
 
@@ -51,11 +53,22 @@ const loginUser = AsyncHandler.wrap(async (req: Request, res: Response) => {
         .json(ApiResponse.success("Login successful", result, 200));
 });
 
+const getRequestRefreshToken = (req: Request): string | undefined => {
+    if (typeof req.cookies?.[refreshTokenCookieName] === "string") {
+        return req.cookies[refreshTokenCookieName];
+    }
+    if (typeof req.body?.refreshToken === "string" && req.body.refreshToken.trim()) {
+        return req.body.refreshToken.trim();
+    }
+    const headerToken = req.headers["x-refresh-token"];
+    if (typeof headerToken === "string" && headerToken.trim()) {
+        return headerToken.trim();
+    }
+    return undefined;
+};
+
 const refreshController = AsyncHandler.wrap(async (req: Request, res: Response) => {
-    const refreshToken =
-        typeof req.cookies?.refreshToken === "string"
-            ? req.cookies.refreshToken
-            : undefined;
+    const refreshToken = getRequestRefreshToken(req);
     const result = await refreshAccessToken(refreshToken ?? "", res);
     return res
         .status(200)
@@ -63,11 +76,8 @@ const refreshController = AsyncHandler.wrap(async (req: Request, res: Response) 
 });
 
 const logoutController = AsyncHandler.wrap(async (req: Request, res: Response) => {
-    const refreshToken =
-        typeof req.cookies?.refreshToken === "string"
-            ? req.cookies.refreshToken
-            : undefined;
-    await logout(refreshToken, res);
+    const refreshToken = getRequestRefreshToken(req);
+    await logout(refreshToken, res, req.user?.id);
     return res
         .status(200)
         .json(ApiResponse.success("Logged out successfully", null, 200));
@@ -78,7 +88,7 @@ const logoutAllController = AsyncHandler.wrap(async (req: Request, res: Response
         throw new ApiError(401, "Authentication failed");
     }
 
-    await logoutAll(req.user.id);
+    await logoutAll(req.user.id, res);
     return res
         .status(200)
         .json(ApiResponse.success("All sessions logged out successfully", null, 200));

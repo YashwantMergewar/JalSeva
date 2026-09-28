@@ -7,7 +7,7 @@ export const refreshTokenCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: config.NODE_ENV === "production",
   sameSite: config.NODE_ENV === "production" ? "strict" : "lax",
-  path: "/api/users",
+  path: "/",
   maxAge: 7 * 24 * 60 * 60 * 1000,
 };
 
@@ -15,3 +15,4 @@ export const clearRefreshTokenCookieOptions: CookieOptions = {
   ...refreshTokenCookieOptions,
   maxAge: 0,
 };
+
