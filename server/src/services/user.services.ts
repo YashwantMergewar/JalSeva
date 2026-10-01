@@ -18,6 +18,7 @@ import type {
     CitizenLoginInput,
     CitizenRegistrationInput,
 } from "../utils/validations/userValidation.js";
+import { UserType } from "../generated/prisma/enums.js";
 
 const publicUserSelect = {
     id: true,
@@ -58,8 +59,8 @@ const clearRefreshCookie = (res: Response) => {
     });
 };
 
-const toAuthUserType = (value: string): AuthenticatedUser["userType"] =>
-    value === "CITIZEN" ? "citizen" : "employee";
+const toAuthUserType = (value: UserType): AuthenticatedUser["userType"] =>
+    value === UserType.CITIZEN ? "CITIZEN" : "EMPLOYEE";
 
 export const createCitizen = async (userData: CitizenRegistrationInput) => {
     const existingUser = await prisma.user.findFirst({
@@ -88,7 +89,7 @@ export const createCitizen = async (userData: CitizenRegistrationInput) => {
                 email: userData.email,
                 mobile_no: userData.mobile_no,
                 password_hash: passwordHash,
-                userType: "CITIZEN",
+                userType: UserType.CITIZEN,
             },
             select: publicUserSelect,
         });

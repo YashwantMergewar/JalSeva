@@ -1,4 +1,4 @@
-﻿export type AuthUserType = 'citizen' | 'employee';
+﻿export type AuthUserType = 'CITIZEN' | 'EMPLOYEE';
 
 export type AuthenticatedUser = {
   id: string;

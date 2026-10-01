@@ -18,7 +18,7 @@ import { getApiErrorMessage } from "../api";
 import { loginSchema, type LoginValues } from "../validation";
 import { useAuth } from "../context/AuthContext";
 
-type LoginScreenProps = { onBack: () => void; onLogin: () => void; onRegister?: () => void };
+type LoginScreenProps = { onBack: () => void; onLogin: (user?: any) => void; onRegister?: () => void };
 
 export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreenProps) {
   const { width } = useWindowDimensions();
@@ -40,8 +40,8 @@ export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreen
     setApiError("");
     setSubmitting(true);
     try {
-      await login(parsed.data);
-      onLogin();
+      const res = await login(parsed.data);
+      if (onLogin) onLogin(res.user);
     } catch (error) {
       setApiError(getApiErrorMessage(error, "Unable to sign in. Please verify your credentials and try again."));
     } finally {

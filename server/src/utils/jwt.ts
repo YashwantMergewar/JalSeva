@@ -5,7 +5,7 @@ import { config } from "../config/env.js";
 
 const accessTokenPayloadSchema = z.object({
   sub: z.string().uuid(),
-  userType: z.enum(["citizen", "employee"]),
+  userType: z.enum(["CITIZEN", "EMPLOYEE"]),
   roleId: z.string().uuid().nullable(),
 });
 
@@ -49,7 +49,7 @@ const baseSignOptions = (expiresIn: string): SignOptions => ({
 
 export function generateAccessToken(user: {
   id: string;
-  userType: "citizen" | "employee";
+  userType: "CITIZEN" | "EMPLOYEE";
   roleId: string | null;
 }): string {
   return jwt.sign(

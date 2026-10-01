@@ -17,7 +17,7 @@ ExpoSplashScreen.preventAutoHideAsync();
  * Routes based on whether the user has a valid access token.
  */
 function RootNavigator() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { isAuthenticated, isLoading, user } = useAuth();
 
   // While AuthContext is restoring the token from SecureStore, show a loader
   if (isLoading) {
@@ -28,19 +28,28 @@ function RootNavigator() {
     );
   }
 
-  // ── Authenticated: send user straight to the citizen dashboard ──
+  // ── Authenticated ──
   if (isAuthenticated) {
+    const isAdmin = user?.userType === "EMPLOYEE";
     return (
       <Stack screenOptions={{ headerShown: false }}>
-        {/* Citizen tabs are the main destination */}
-        <Stack.Screen name="(citizen)" />
-        {/* Hide auth / guest screens from the stack so the user can't navigate back */}
+        {isAdmin ? (
+          <Stack.Screen name="(admin)" />
+        ) : (
+          <Stack.Screen name="(citizen)" />
+        )}
+        {/* Hide auth / guest screens from the stack */}
         <Stack.Screen name="welcome" options={{ href: null } as any} />
         <Stack.Screen name="login" options={{ href: null } as any} />
         <Stack.Screen name="register" options={{ href: null } as any} />
         <Stack.Screen name="registration-success" options={{ href: null } as any} />
         <Stack.Screen name="onboarding" options={{ href: null } as any} />
         <Stack.Screen name="(tabs)" options={{ href: null } as any} />
+        {isAdmin ? (
+          <Stack.Screen name="(citizen)" options={{ href: null } as any} />
+        ) : (
+          <Stack.Screen name="(admin)" options={{ href: null } as any} />
+        )}
       </Stack>
     );
   }
@@ -54,8 +63,14 @@ function RootNavigator() {
       <Stack.Screen name="registration-success" />
       <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
-      {/* Hide citizen routes from the stack so unauthenticated users can't access them */}
+      {/* Activation screens — accessible without authentication via deep link */}
+      <Stack.Screen name="activate-account" />
+      <Stack.Screen name="activation-success" />
+      <Stack.Screen name="(admin)/activate-account" />
+      <Stack.Screen name="(admin)/activation-success" />
+      {/* Hide protected routes from the stack */}
       <Stack.Screen name="(citizen)" options={{ href: null } as any} />
+      <Stack.Screen name="(admin)" options={{ href: null } as any} />
     </Stack>
   );
 }

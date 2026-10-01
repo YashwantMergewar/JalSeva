@@ -14,7 +14,7 @@ datasource db {
 
 enum UserType {
   CITIZEN
-  employee
+  EMPLOYEE
 }
 
 enum ScheduleStatus {
@@ -114,6 +114,7 @@ model User {
   scheduleChangesMade      ScheduleChangeHistory[]
   notifications            Notification[]
   refreshTokens            RefreshToken[]
+  activationTokens         ActivationToken[]
   auditLogs                AuditLog[]
 
   @@index([roleId])
@@ -133,6 +134,22 @@ model RefreshToken {
   @@index([userId])
   @@index([expiresAt])
   @@map("refresh_tokens")
+}
+
+model ActivationToken {
+  id        String    @id @default(uuid())
+  userId    String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("activation_tokens")
 }
 
 model Department {

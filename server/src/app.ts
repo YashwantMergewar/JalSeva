@@ -5,6 +5,8 @@ import cookieParser from 'cookie-parser';
 import { ApiError } from './utils/ApiError.js';
 import { ApiResponse } from './utils/ApiResponse.js';
 import { userRouter } from './routes/user.routes.js';
+import { employeeRouter, activationLimiter, verifyTokenLimiter } from './routes/employee.routes.js';
+import { activateAccountController, verifyTokenController } from './controller/employee.controller.js';
 import { config, isProduction } from './config/env.js';
 
 const app = express()
@@ -13,7 +15,7 @@ if (isProduction) {
 }
 
 app.use(cors({
-  origin: config.FRONTEND_URL || true,
+  origin: config.NODE_ENV === "development" ? true : (config.FRONTEND_URL || true),
   credentials: true
 }));
 
@@ -27,8 +29,14 @@ app.use((req, _res, next) => {
     next();
 });
 
+// Direct auth activation endpoints (satisfies task spec /api/auth/activate-account)
+app.post("/api/auth/activate-account", activationLimiter, activateAccountController);
+app.post("/api/v1/auth/activate-account", activationLimiter, activateAccountController);
+app.get("/api/auth/verify-token", verifyTokenLimiter, verifyTokenController);
+app.get("/api/v1/auth/verify-token", verifyTokenLimiter, verifyTokenController);
+
 app.use("/api/v1/users", userRouter);
-app.use("/api/users", userRouter);
+app.use("/api/v1/employees", employeeRouter);
 
 
 const errorHandler: ErrorRequestHandler = (err, _req, res, _next) => {

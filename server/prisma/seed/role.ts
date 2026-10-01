@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
-import { PrismaClient } from "../src/generated/prisma/client.js";
+import { PrismaClient } from "../../src/generated/prisma/client.js";
 import { Pool } from "pg";
 
 const connectionString = process.env.DATABASE_URL;
@@ -31,6 +31,10 @@ async function main() {
       {
         name: "PLUMBER",
         description: "Handles water dispatch, field visits, repairs, and complaint resolution."
+      },
+      {
+        name: "ADMIN",
+        description: "Handles all administrative tasks including employee registration, deparment management, user management, role management, complaint management, and schedule management."
       }
     ],
     skipDuplicates: true

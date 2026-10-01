@@ -10,6 +10,13 @@ const envSchema = z.object({
   REFRESH_TOKEN_SECRET: z.string().min(32, "REFRESH_TOKEN_SECRET must be at least 32 characters"),
   ACCESS_TOKEN_EXPIRES_IN: z.string().default("15m"),
   REFRESH_TOKEN_EXPIRES_IN: z.string().default("7d"),
+  // Nodemailer / SMTP
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.coerce.number().default(587),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
+  SMTP_FROM: z.string().default("Jal Seva <noreply@jalseva.gov.in>"),
+  SMTP_SECURE: z.string().optional(),
 });
 
 export const config = envSchema.parse(process.env);

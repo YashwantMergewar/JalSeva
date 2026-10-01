@@ -1,13 +1,22 @@
 import { useRouter } from "expo-router";
 import LoginScreen from "../src/screens/LoginScreen";
+import { useAuth } from "../src/context/AuthContext";
 
 export default function LoginRoute() {
   const router = useRouter();
+  const { user } = useAuth();
 
   return (
     <LoginScreen
       onBack={() => router.back()}
-      onLogin={() => router.replace("/(citizen)" as any)}
+      onLogin={(loggedInUser) => {
+        const u = loggedInUser || user;
+        if (u?.userType === "EMPLOYEE") {
+          router.replace("/(admin)" as any);
+        } else {
+          router.replace("/(citizen)" as any);
+        }
+      }}
       onRegister={() => router.push("/register")}
     />
   );

@@ -10,7 +10,7 @@ export interface User {
   fullname: string;
   email: string;
   mobile_no: string;
-  userType: "CITIZEN" | "EMPLOYEE" | string;
+  userType: "CITIZEN" | "EMPLOYEE";
   roleId: string | null;
   isActive: boolean;
   createdAt?: string;
