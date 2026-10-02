@@ -66,8 +66,6 @@ function RootNavigator() {
       {/* Activation screens — accessible without authentication via deep link */}
       <Stack.Screen name="activate-account" />
       <Stack.Screen name="activation-success" />
-      <Stack.Screen name="(admin)/activate-account" />
-      <Stack.Screen name="(admin)/activation-success" />
       {/* Hide protected routes from the stack */}
       <Stack.Screen name="(citizen)" options={{ href: null } as any} />
       <Stack.Screen name="(admin)" options={{ href: null } as any} />
