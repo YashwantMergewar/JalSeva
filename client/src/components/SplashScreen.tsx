@@ -1,4 +1,4 @@
-import { Droplets, Leaf } from "lucide-react-native";
+import { SymbolView } from "expo-symbols";
 import { StatusBar } from "expo-status-bar";
 import { Text, View, useWindowDimensions } from "react-native";
 
@@ -22,8 +22,18 @@ export default function SplashScreen() {
           className="items-center justify-center rounded-full bg-[#0F59D2]"
           style={{ width: logoSize, height: logoSize }}
         >
-          <Droplets size={logoSize * 0.42} color={COLORS.water} style={{ marginTop: 2 }} />
-          <Leaf size={logoSize * 0.25} color={COLORS.leaf} style={{ position: "absolute", right: "15%", bottom: "13%" }} />
+          <SymbolView
+            name={{ ios: "drop", android: "water_drop", web: "water_drop" }}
+            size={logoSize * 0.42}
+            tintColor={COLORS.water}
+            style={{ marginTop: 2 }}
+          />
+          <SymbolView
+            name={{ ios: "leaf", android: "eco", web: "eco" }}
+            size={logoSize * 0.25}
+            tintColor={COLORS.leaf}
+            style={{ position: "absolute", right: "15%", bottom: "13%" }}
+          />
         </View>
 
         <Text

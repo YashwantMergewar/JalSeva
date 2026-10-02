@@ -39,8 +39,6 @@ services:
       dockerfile: Dockerfile
     container_name: jal-seva-api
     restart: unless-stopped
-    env_file:
-      - ./server/.env
     environment:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/jalsevadb
       PORT: 5000
