@@ -1,7 +1,8 @@
 import app from './app.js';
 import { connectDB, disconnectDB } from './config/db.js';
+import { config } from './config/env.js';
 
-const PORT: number = Number(process.env.PORT ?? 8000);
+const PORT: number = config.PORT;
 
 connectDB().then(() => {
     app.listen(PORT, "0.0.0.0", () => {

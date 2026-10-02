@@ -7,7 +7,9 @@
     "scheme": "jalseva",
     "userInterfaceStyle": "automatic",
     "ios": {},
-    "android": {},
+    "android": {
+      "softwareKeyboardLayoutMode": "resize"
+    },
     "web": {
       "output": "static"
     },
@@ -18,8 +20,11 @@
         {
           "backgroundColor": "#0D49A2"
         }
-      ]
+      ],
+      "expo-secure-store"
     ],
-    "experiments": { "typedRoutes": true }
+    "experiments": {
+      "typedRoutes": true
+    }
   }
 }
