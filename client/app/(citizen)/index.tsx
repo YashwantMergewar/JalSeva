@@ -1,12 +1,5 @@
-import { useRouter } from "expo-router";
-import CitizenDashboardScreen from "../../src/screens/CitizenDashboardScreen";
+import CitizenHomeScreen from "../../src/screens/CitizenHomeScreen";
 
 export default function CitizenHomeRoute() {
-  const router = useRouter();
-
-  return (
-    <CitizenDashboardScreen
-      onNotifications={() => router.push("/(citizen)/notifications" as any)}
-    />
-  );
+  return <CitizenHomeScreen />;
 }

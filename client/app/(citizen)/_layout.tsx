@@ -1,31 +1,32 @@
 import { Tabs } from "expo-router";
 import {
-  ClipboardList,
   House,
-  Receipt,
-  Settings,
+  Waves,
+  CalendarDays,
+  AlertCircle,
   UserRound,
 } from "lucide-react-native";
-import { View, StyleSheet } from "react-native";
+import { View, StyleSheet, Text } from "react-native";
 
 export default function CitizenTabsLayout() {
   return (
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: "#0649aa",
-        tabBarInactiveTintColor: "#666666",
+        tabBarActiveTintColor: "#004d40",
+        tabBarInactiveTintColor: "#64748b",
         tabBarStyle: {
-          height: 72,
+          height: 68,
           borderTopWidth: 1,
-          borderTopColor: "#d8d8d0",
+          borderTopColor: "#e2e8f0",
           backgroundColor: "#ffffff",
           paddingBottom: 8,
           paddingTop: 6,
         },
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "500" },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
       }}
     >
+      {/* 1. Home */}
       <Tabs.Screen
         name="index"
         options={{
@@ -33,52 +34,146 @@ export default function CitizenTabsLayout() {
           tabBarIcon: ({ color, focused }) => (
             <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
               <House
-                color={focused ? "#ffffff" : color}
+                color={focused ? "#004d40" : color}
                 size={22}
-                strokeWidth={1.8}
+                strokeWidth={focused ? 2.2 : 1.8}
               />
             </View>
           ),
         }}
       />
+
+      {/* 2. Services */}
       <Tabs.Screen
         name="services"
         options={{
           title: "Services",
-          tabBarIcon: ({ color }) => (
-            <Settings color={color} size={22} strokeWidth={1.8} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="complaints"
-        options={{
-          title: "Complaints",
-          tabBarIcon: ({ color }) => (
-            <View>
-              <ClipboardList color={color} size={22} strokeWidth={1.8} />
-              {/* Red badge dot */}
-              <View style={styles.badge} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+              <Waves
+                color={focused ? "#004d40" : color}
+                size={22}
+                strokeWidth={focused ? 2.2 : 1.8}
+              />
             </View>
           ),
         }}
       />
+
+      {/* 3. Water Schedule */}
       <Tabs.Screen
-        name="bills"
+        name="schedule"
         options={{
-          title: "Bills",
-          tabBarIcon: ({ color }) => (
-            <Receipt color={color} size={22} strokeWidth={1.8} />
+          title: "Schedule",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+              <CalendarDays
+                color={focused ? "#004d40" : color}
+                size={22}
+                strokeWidth={focused ? 2.2 : 1.8}
+              />
+            </View>
           ),
         }}
       />
+
+      {/* 4. Complaints */}
+      <Tabs.Screen
+        name="complaints"
+        options={{
+          title: "Complaints",
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+              <AlertCircle
+                color={focused ? "#004d40" : color}
+                size={22}
+                strokeWidth={focused ? 2.2 : 1.8}
+              />
+            </View>
+          ),
+        }}
+      />
+
+      {/* 5. Profile */}
       <Tabs.Screen
         name="profile"
         options={{
           title: "Profile",
-          tabBarIcon: ({ color }) => (
-            <UserRound color={color} size={22} strokeWidth={1.8} />
+          tabBarIcon: ({ color, focused }) => (
+            <View style={[styles.iconWrap, focused && styles.iconWrapActive]}>
+              <UserRound
+                color={focused ? "#004d40" : color}
+                size={22}
+                strokeWidth={focused ? 2.2 : 1.8}
+              />
+            </View>
           ),
+        }}
+      />
+
+      {/* ── Sub-flow screens (Hidden from bottom tabs) ── */}
+      <Tabs.Screen
+        name="application-tracking"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="new-connection"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="my-connection"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="submit-complaint"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="complaint-details"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="support"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      <Tabs.Screen
+        name="notifications"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
+        }}
+      />
+
+      {/* Bills tab removed from scope */}
+      <Tabs.Screen
+        name="bills"
+        options={{
+          href: null,
+          tabBarStyle: { display: "none" },
         }}
       />
     </Tabs>
@@ -87,25 +182,16 @@ export default function CitizenTabsLayout() {
 
 const styles = StyleSheet.create({
   iconWrap: {
-    width: 40,
-    height: 28,
-    borderRadius: 14,
+    width: 48,
+    height: 30,
+    borderRadius: 15,
     alignItems: "center",
     justifyContent: "center",
   },
   iconWrapActive: {
-    backgroundColor: "#0649aa",
-    width: 52,
+    backgroundColor: "#8df1e0", // Mint teal from DESIGN.md and screenshots
+    width: 58,
     height: 32,
     borderRadius: 16,
-  },
-  badge: {
-    position: "absolute",
-    top: -2,
-    right: -4,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: "#ba1a1a",
   },
 });
