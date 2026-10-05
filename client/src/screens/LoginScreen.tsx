@@ -17,6 +17,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { getApiErrorMessage } from "../api";
 import { loginSchema, type LoginValues } from "../validation";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 type LoginScreenProps = { onBack: () => void; onLogin: (user?: any) => void; onRegister?: () => void };
 
@@ -24,6 +25,7 @@ export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreen
   const { width } = useWindowDimensions();
   const compact = width < 420;
   const { login } = useAuth();
+  const { showToast } = useToast();
   const [values, setValues] = useState<LoginValues>({ identifier: "", password: "" });
   const [errors, setErrors] = useState<Partial<Record<keyof LoginValues, string>>>({});
   const [apiError, setApiError] = useState("");
@@ -33,7 +35,12 @@ export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreen
   const submit = async () => {
     const parsed = loginSchema.safeParse(values);
     if (!parsed.success) {
-      setErrors(Object.fromEntries(parsed.error.issues.map((issue) => [issue.path[0], issue.message])));
+      const fieldErrors = Object.fromEntries(
+        parsed.error.issues.map((issue) => [issue.path[0], issue.message])
+      );
+      setErrors(fieldErrors);
+      const firstMsg = parsed.error.issues[0]?.message || "Please enter valid login details.";
+      showToast(firstMsg, { type: "error", title: "Validation Error" });
       return;
     }
     setErrors({});
@@ -41,13 +48,20 @@ export default function LoginScreen({ onBack, onLogin, onRegister }: LoginScreen
     setSubmitting(true);
     try {
       const res = await login(parsed.data);
+      showToast("Signed in successfully!", { type: "success", title: "Welcome" });
       if (onLogin) onLogin(res.user);
     } catch (error) {
-      setApiError(getApiErrorMessage(error, "Unable to sign in. Please verify your credentials and try again."));
+      const errorMsg = getApiErrorMessage(
+        error,
+        "Unable to sign in. Please verify your credentials and try again."
+      );
+      setApiError(errorMsg);
+      showToast(errorMsg, { type: "error", title: "Sign In Failed" });
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>

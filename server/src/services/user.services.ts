@@ -75,9 +75,9 @@ export const createCitizen = async (userData: CitizenRegistrationInput) => {
 
     if (existingUser) {
         const field = existingUser.email === userData.email
-            ? "Email"
+            ? "Email address"
             : "Mobile number";
-        throw new ApiError(409, `${field} is already registered`);
+        throw new ApiError(409, `${field} is already registered. Please sign in or use another ${field.toLowerCase()}.`);
     }
 
     const passwordHash = await bcrypt.hash(userData.password, 12);
@@ -99,7 +99,7 @@ export const createCitizen = async (userData: CitizenRegistrationInput) => {
             "code" in error &&
             error.code === "P2002"
         ) {
-            throw new ApiError(409, "Email or mobile number is already registered");
+            throw new ApiError(409, "An account with this email address or mobile number already exists.");
         }
         throw error;
     }
@@ -119,13 +119,19 @@ export const authenticateUser = async (
         },
     });
 
-    if (
-        !user ||
-        !user.isActive ||
-        !(await bcrypt.compare(credentials.password, user.password_hash))
-    ) {
-        throw new ApiError(401, "Authentication failed");
+    if (!user) {
+        throw new ApiError(401, "Invalid email/mobile number or password.");
     }
+
+    if (!user.isActive) {
+        throw new ApiError(403, "Your account has been deactivated or is awaiting activation. Please contact administration.");
+    }
+
+    const isPasswordValid = await bcrypt.compare(credentials.password, user.password_hash);
+    if (!isPasswordValid) {
+        throw new ApiError(401, "Invalid email/mobile number or password.");
+    }
+
 
     const accessToken = generateAccessToken({
         id: user.id,

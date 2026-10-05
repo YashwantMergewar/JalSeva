@@ -59,8 +59,8 @@ export const createEmployee = async (data: CreateEmployeeInput) => {
     });
 
     if (existing) {
-        const field = existing.email === data.email ? "Email" : "Mobile number";
-        throw new ApiError(409, `${field} is already registered`);
+        const field = existing.email === data.email ? "Email address" : "Mobile number";
+        throw new ApiError(409, `${field} is already registered for an existing employee.`);
     }
 
     // Validate role exists
@@ -69,7 +69,7 @@ export const createEmployee = async (data: CreateEmployeeInput) => {
         select: { id: true, name: true },
     });
     if (!role) {
-        throw new ApiError(404, "Role not found");
+        throw new ApiError(404, "Selected role does not exist. Please refresh and select a valid role.");
     }
 
     // Validate department exists
@@ -78,7 +78,7 @@ export const createEmployee = async (data: CreateEmployeeInput) => {
         select: { id: true, name: true },
     });
     if (!department) {
-        throw new ApiError(404, "Department not found");
+        throw new ApiError(404, "Selected department does not exist. Please refresh and select a valid department.");
     }
 
     const employeeId = await generateEmployeeId();

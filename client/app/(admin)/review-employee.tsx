@@ -30,11 +30,13 @@ import {
 } from "lucide-react-native";
 import { apiCreateEmployee, getApiErrorMessage } from "../../src/api/employee.api";
 import { useAuth } from "../../src/context/AuthContext";
+import { useToast } from "../../src/context/ToastContext";
 
 export default function ReviewEmployeeScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [loading, setLoading] = useState(false);
 
@@ -78,6 +80,10 @@ export default function ReviewEmployeeScreen() {
       });
 
       if (res.success && res.data) {
+        showToast("Employee created successfully! Activation link sent.", {
+          type: "success",
+          title: "Employee Created",
+        });
         // Navigate to Screen 5
         router.push({
           pathname: "/(admin)/employee-created",
@@ -96,15 +102,17 @@ export default function ReviewEmployeeScreen() {
           },
         } as any);
       } else {
-        Alert.alert("Creation Error", res.message || "Could not create employee.");
+        const errorMsg = res.message || "Could not create employee.";
+        showToast(errorMsg, { type: "error", title: "Creation Failed" });
       }
     } catch (err) {
       const msg = getApiErrorMessage(err, "Failed to create employee.");
-      Alert.alert("Creation Error", msg);
+      showToast(msg, { type: "error", title: "Creation Failed" });
     } finally {
       setLoading(false);
     }
   };
+
 
   const initial = user?.fullname?.charAt(0).toUpperCase() ?? "A";
 

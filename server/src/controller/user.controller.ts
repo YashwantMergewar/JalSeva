@@ -21,12 +21,17 @@ import { refreshTokenCookieName } from "../config/cookies.js";
 const getValidationErrors = (error: ZodError) =>
     error.issues.map(({ path, message }) => ({ path, message }));
 
+const getValidationErrorMessage = (error: ZodError, fallback: string) => {
+    const firstIssue = error.issues[0];
+    return firstIssue?.message || fallback;
+};
+
 const registerCitizen = AsyncHandler.wrap(async (req: Request, res: Response) => {
     const parsedBody = citizenRegistrationSchema.safeParse(req.body);
     if (!parsedBody.success) {
         throw new ApiError(
             400,
-            "Invalid registration details",
+            getValidationErrorMessage(parsedBody.error, "Invalid registration details"),
             getValidationErrors(parsedBody.error),
         );
     }
@@ -42,7 +47,7 @@ const loginUser = AsyncHandler.wrap(async (req: Request, res: Response) => {
     if (!parsedBody.success) {
         throw new ApiError(
             400,
-            "Invalid login details",
+            getValidationErrorMessage(parsedBody.error, "Invalid login credentials"),
             getValidationErrors(parsedBody.error),
         );
     }
@@ -52,6 +57,7 @@ const loginUser = AsyncHandler.wrap(async (req: Request, res: Response) => {
         .status(200)
         .json(ApiResponse.success("Login successful", result, 200));
 });
+
 
 const getRequestRefreshToken = (req: Request): string | undefined => {
     if (typeof req.cookies?.[refreshTokenCookieName] === "string") {

@@ -80,41 +80,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [initializeAuth]);
 
   const login = async (credentials: LoginPayload): Promise<AuthResponseData> => {
-    setIsLoading(true);
-    try {
-      const response = await loginCitizen(credentials);
-      if (!response.data) {
-        throw new Error(response.message || "Failed to sign in");
-      }
-
-      const { accessToken: token, user: authUser } = response.data;
-
-      // Securely store token and user in SecureStore (no localStorage)
-      await Promise.all([
-        setStoredAccessToken(token),
-        setStoredUser(authUser),
-      ]);
-
-      setAccessToken(token);
-      setUser(authUser);
-
-      return response.data;
-    } finally {
-      setIsLoading(false);
+    const response = await loginCitizen(credentials);
+    if (!response.data) {
+      throw new Error(response.message || "Failed to sign in");
     }
+
+    const { accessToken: token, user: authUser } = response.data;
+
+    // Securely store token and user in SecureStore (no localStorage)
+    await Promise.all([
+      setStoredAccessToken(token),
+      setStoredUser(authUser),
+    ]);
+
+    setAccessToken(token);
+    setUser(authUser);
+
+    return response.data;
   };
 
   const register = async (data: RegisterPayload): Promise<User> => {
-    setIsLoading(true);
-    try {
-      const response = await registerCitizen(data);
-      if (!response.data) {
-        throw new Error(response.message || "Failed to create account");
-      }
-      return response.data;
-    } finally {
-      setIsLoading(false);
+    const response = await registerCitizen(data);
+    if (!response.data) {
+      throw new Error(response.message || "Failed to create account");
     }
+    return response.data;
   };
 
   const logout = async (): Promise<void> => {

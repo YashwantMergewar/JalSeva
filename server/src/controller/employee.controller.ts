@@ -23,6 +23,11 @@ import {
 const getValidationErrors = (error: ZodError) =>
     error.issues.map(({ path, message }) => ({ path, message }));
 
+const getValidationErrorMessage = (error: ZodError, fallback: string) => {
+    const firstIssue = error.issues[0];
+    return firstIssue?.message || fallback;
+};
+
 /** POST /api/v1/employees  – Admin creates an employee */
 export const createEmployeeController = AsyncHandler.wrap(
     async (req: Request, res: Response) => {
@@ -30,7 +35,7 @@ export const createEmployeeController = AsyncHandler.wrap(
         if (!parsed.success) {
             throw new ApiError(
                 400,
-                "Invalid employee details",
+                getValidationErrorMessage(parsed.error, "Invalid employee details"),
                 getValidationErrors(parsed.error),
             );
         }

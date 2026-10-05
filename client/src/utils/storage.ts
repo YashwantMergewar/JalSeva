@@ -100,3 +100,38 @@ export async function clearStoredAuth(): Promise<void> {
     removeStoredUser(),
   ]);
 }
+
+/* ──────────────── Onboarding Storage Helpers ──────────────── */
+
+export async function setHasSeenOnboarding(hasSeen: boolean = true): Promise<void> {
+  const value = hasSeen ? "true" : "false";
+  await setSecureItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, value);
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.setItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING, value);
+    } catch {}
+  }
+}
+
+export async function getHasSeenOnboarding(): Promise<boolean> {
+  const value = await getSecureItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
+  if (value !== null) {
+    return value === "true";
+  }
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      return window.localStorage.getItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING) === "true";
+    } catch {}
+  }
+  return false;
+}
+
+export async function resetHasSeenOnboarding(): Promise<void> {
+  await deleteSecureItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
+  if (typeof window !== "undefined" && window.localStorage) {
+    try {
+      window.localStorage.removeItem(STORAGE_KEYS.HAS_SEEN_ONBOARDING);
+    } catch {}
+  }
+}
+

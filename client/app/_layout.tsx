@@ -7,10 +7,12 @@ import { ActivityIndicator, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import SplashScreen from "./../src/screens/SplashScreen";
 
-import { AuthProvider } from "../src/context";
+import { AuthProvider, ToastProvider } from "../src/context";
 import { useAuth } from "../src/context/AuthContext";
+import { getHasSeenOnboarding } from "../src/utils/storage";
 
 ExpoSplashScreen.preventAutoHideAsync();
+
 
 /**
  * Inner navigator that has access to AuthContext.
@@ -18,9 +20,29 @@ ExpoSplashScreen.preventAutoHideAsync();
  */
 function RootNavigator() {
   const { isAuthenticated, isLoading, user } = useAuth();
+  const [hasSeenOnboarding, setHasSeenOnboardingState] = useState<boolean | null>(null);
 
-  // While AuthContext is restoring the token from SecureStore, show a loader
-  if (isLoading) {
+  useEffect(() => {
+    let mounted = true;
+    getHasSeenOnboarding()
+      .then((seen) => {
+        if (mounted) {
+          setHasSeenOnboardingState(seen);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setHasSeenOnboardingState(false);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  // While AuthContext is restoring the token from SecureStore or checking onboarding status, show a loader
+  if (isLoading || hasSeenOnboarding === null) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "#f0efea" }}>
         <ActivityIndicator size="large" color="#0649aa" />
@@ -52,13 +74,15 @@ function RootNavigator() {
   }
 
   // ── Not authenticated: show public/guest screens ──
+  const initialRoute = hasSeenOnboarding ? "welcome" : "onboarding";
+
   return (
-    <Stack initialRouteName="welcome" screenOptions={{ headerShown: false }}>
+    <Stack initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="onboarding" />
       <Stack.Screen name="welcome" />
       <Stack.Screen name="login" />
       <Stack.Screen name="register" />
       <Stack.Screen name="registration-success" />
-      <Stack.Screen name="onboarding" />
       <Stack.Screen name="(tabs)" />
       {/* Activation screens — accessible without authentication via deep link */}
       <Stack.Screen name="activate-account" />
@@ -85,15 +109,14 @@ export default function RootLayout() {
     return () => clearTimeout(splashTimer);
   }, []);
 
-  if (showSplash) {
-    return <SplashScreen />;
-  }
-
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <RootNavigator />
-      </AuthProvider>
+      <ToastProvider>
+        <AuthProvider>
+          {showSplash ? <SplashScreen /> : <RootNavigator />}
+        </AuthProvider>
+      </ToastProvider>
     </SafeAreaProvider>
   );
 }
+

@@ -19,10 +19,12 @@ export const createEmployeeSchema = z.object({
     mobile_no: mobileNumberSchema,
     roleId: z
         .string()
-        .uuid("Invalid role ID"),
+        .trim()
+        .min(1, "Role selection is required"),
     departmentId: z
         .string()
-        .uuid("Invalid department ID"),
+        .trim()
+        .min(1, "Department selection is required"),
     officeName: z
         .string()
         .trim()

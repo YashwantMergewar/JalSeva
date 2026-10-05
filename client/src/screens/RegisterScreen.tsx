@@ -23,6 +23,7 @@ import {
   type RegistrationFormValues as RegistrationValues,
 } from "../validation";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 type RegisterScreenProps = {
   onBack: () => void;
@@ -45,6 +46,7 @@ export default function RegisterScreen({
   onLogin,
 }: RegisterScreenProps) {
   const { register } = useAuth();
+  const { showToast } = useToast();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [values, setValues] = useState<RegistrationValues>(initialValues);
@@ -61,29 +63,37 @@ export default function RegisterScreen({
   const submit = async () => {
     const parsed = citizenRegistrationSchema.safeParse(values);
     if (!parsed.success) {
-      setErrors(
-        Object.fromEntries(
-          parsed.error.issues.map((issue) => [issue.path[0], issue.message])
-        )
+      const fieldErrors = Object.fromEntries(
+        parsed.error.issues.map((issue) => [issue.path[0], issue.message])
       );
+      setErrors(fieldErrors);
+      const firstMsg =
+        parsed.error.issues[0]?.message ||
+        "Please fill in all required fields accurately.";
+      showToast(firstMsg, { type: "error", title: "Validation Error" });
       return;
     }
     setApiError("");
     setSubmitting(true);
     try {
       await register(parsed.data);
+      showToast("Account created successfully!", {
+        type: "success",
+        title: "Registration Success",
+      });
       onRegister();
     } catch (error) {
-      setApiError(
-        getApiErrorMessage(
-          error,
-          "Could not create your account. Please check your details and try again."
-        )
+      const errorMsg = getApiErrorMessage(
+        error,
+        "Could not create your account. Please check your details and try again."
       );
+      setApiError(errorMsg);
+      showToast(errorMsg, { type: "error", title: "Registration Failed" });
     } finally {
       setSubmitting(false);
     }
   };
+
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>

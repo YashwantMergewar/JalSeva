@@ -35,6 +35,7 @@ import {
   Department,
 } from "../../src/api/employee.api";
 import { useAuth } from "../../src/context/AuthContext";
+import { useToast } from "../../src/context/ToastContext";
 
 const DEFAULT_DEPARTMENTS: Department[] = [
   { id: "dept-water", name: "Water Department", description: "Water supply, treatment and pipeline management" },
@@ -61,6 +62,7 @@ const DEFAULT_OFFICES = [
 export default function AddEmployeeScreen() {
   const router = useRouter();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   // Form Fields
   const [fullname, setFullname] = useState("Rahul Patil");
@@ -108,18 +110,39 @@ export default function AddEmployeeScreen() {
 
   const validate = (): boolean => {
     const errs: Record<string, string> = {};
-    if (!fullname.trim()) errs.fullname = "Full name is required";
-    if (!email.trim() || !email.includes("@")) errs.email = "Valid email address is required";
+    if (!fullname.trim() || fullname.trim().length < 2) {
+      errs.fullname = "Full name must be at least 2 characters long";
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!email.trim() || !emailRegex.test(email.trim())) {
+      errs.email = "Enter a valid official email address";
+    }
     const cleanedMobile = mobileNo.replace(/\D/g, "");
-    if (cleanedMobile.length !== 10) errs.mobileNo = "Enter a valid 10-digit mobile number";
+    if (!/^[6-9]\d{9}$/.test(cleanedMobile)) {
+      errs.mobileNo = "Enter a valid 10-digit mobile number starting with 6, 7, 8, or 9";
+    }
+    if (!selectedRole || !selectedRole.id) {
+      errs.role = "Please select a predefined role";
+    }
+    if (!selectedDept || !selectedDept.id) {
+      errs.department = "Please select an assigned department";
+    }
 
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
 
   const handleReview = () => {
-    if (!validate()) {
-      Alert.alert("Validation Error", "Please ensure all required fields are accurately filled.");
+    const isValid = validate();
+    if (!isValid) {
+      const errKeys = Object.keys(errors);
+      const firstError =
+        (errors as any)[errKeys[0]] ||
+        (!fullname.trim() ? "Full name is required" : "") ||
+        (!email.trim() ? "Valid email address is required" : "") ||
+        (!/^[6-9]\d{9}$/.test(mobileNo.replace(/\D/g, "")) ? "Enter a valid 10-digit mobile number starting with 6-9" : "") ||
+        "Please ensure all required fields are accurately filled.";
+      showToast(firstError, { type: "error", title: "Validation Error" });
       return;
     }
 
@@ -141,6 +164,7 @@ export default function AddEmployeeScreen() {
       params: { data: JSON.stringify(payload) },
     } as any);
   };
+
 
   const initial = user?.fullname?.charAt(0).toUpperCase() ?? "A";
 
@@ -262,9 +286,13 @@ export default function AddEmployeeScreen() {
                 placeholderTextColor="#9ca3af"
               />
             </View>
-            <Text style={styles.helperText}>
-              As stated in the official Government Aadhaar / Voter ID card
-            </Text>
+            {errors.fullname ? (
+              <Text style={styles.errorText}>{errors.fullname}</Text>
+            ) : (
+              <Text style={styles.helperText}>
+                As stated in the official Government Aadhaar / Voter ID card
+              </Text>
+            )}
           </View>
 
           {/* Field: Official Email */}
@@ -287,9 +315,13 @@ export default function AddEmployeeScreen() {
                 autoCapitalize="none"
               />
             </View>
-            <Text style={styles.helperHighlight}>
-              ↳ Activation link will be sent to this email
-            </Text>
+            {errors.email ? (
+              <Text style={styles.errorText}>{errors.email}</Text>
+            ) : (
+              <Text style={styles.helperHighlight}>
+                ↳ Activation link will be sent to this email
+              </Text>
+            )}
           </View>
 
           {/* Field: Mobile Number */}
@@ -319,9 +351,13 @@ export default function AddEmployeeScreen() {
                 <CheckCircle2 size={16} color="#059669" strokeWidth={2} />
               )}
             </View>
-            <Text style={styles.helperText}>
-              Used for two-factor authentication (2FA) municipal logins
-            </Text>
+            {errors.mobileNo ? (
+              <Text style={styles.errorText}>{errors.mobileNo}</Text>
+            ) : (
+              <Text style={styles.helperText}>
+                Used for two-factor authentication (2FA) municipal logins
+              </Text>
+            )}
           </View>
 
           {/* Field: Employee Photo (Optional) */}
@@ -869,6 +905,12 @@ const styles = StyleSheet.create({
   helperHighlight: {
     fontSize: 11,
     color: "#059669",
+    marginTop: 4,
+    fontWeight: "500",
+  },
+  errorText: {
+    fontSize: 11,
+    color: "#dc2626",
     marginTop: 4,
     fontWeight: "500",
   },
