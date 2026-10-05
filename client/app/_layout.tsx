@@ -30,14 +30,16 @@ function RootNavigator() {
 
   // ── Authenticated ──
   if (isAuthenticated) {
-    const isAdmin = user?.userType === "EMPLOYEE";
+    const isEmployee = user?.userType === "EMPLOYEE";
+    const roleName = ((user as any)?.role?.name || (user as any)?.roleName || (user as any)?.role || "").toString().toUpperCase();
+    const isAdmin = isEmployee && (roleName.includes("ADMIN") || (user as any)?.isAdmin);
+    const initialRoute = isAdmin ? "(admin)" : isEmployee ? "(employee)" : "(citizen)";
+
     return (
-      <Stack screenOptions={{ headerShown: false }}>
-        {isAdmin ? (
-          <Stack.Screen name="(admin)" />
-        ) : (
-          <Stack.Screen name="(citizen)" />
-        )}
+      <Stack initialRouteName={initialRoute} screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(admin)" options={{ href: isAdmin ? undefined : null } as any} />
+        <Stack.Screen name="(employee)" options={{ href: (isEmployee && !isAdmin) ? undefined : null } as any} />
+        <Stack.Screen name="(citizen)" options={{ href: !isEmployee ? undefined : null } as any} />
         {/* Hide auth / guest screens from the stack */}
         <Stack.Screen name="welcome" options={{ href: null } as any} />
         <Stack.Screen name="login" options={{ href: null } as any} />
@@ -45,11 +47,6 @@ function RootNavigator() {
         <Stack.Screen name="registration-success" options={{ href: null } as any} />
         <Stack.Screen name="onboarding" options={{ href: null } as any} />
         <Stack.Screen name="(tabs)" options={{ href: null } as any} />
-        {isAdmin ? (
-          <Stack.Screen name="(citizen)" options={{ href: null } as any} />
-        ) : (
-          <Stack.Screen name="(admin)" options={{ href: null } as any} />
-        )}
       </Stack>
     );
   }
@@ -69,6 +66,7 @@ function RootNavigator() {
       {/* Hide protected routes from the stack */}
       <Stack.Screen name="(citizen)" options={{ href: null } as any} />
       <Stack.Screen name="(admin)" options={{ href: null } as any} />
+      <Stack.Screen name="(employee)" options={{ href: null } as any} />
     </Stack>
   );
 }

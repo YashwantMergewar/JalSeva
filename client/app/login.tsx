@@ -11,8 +11,12 @@ export default function LoginRoute() {
       onBack={() => router.back()}
       onLogin={(loggedInUser) => {
         const u = loggedInUser || user;
-        if (u?.userType === "EMPLOYEE") {
+        const roleName = ((u as any)?.role?.name || (u as any)?.roleName || (u as any)?.role || "").toString().toUpperCase();
+        const isAdmin = u?.userType === "EMPLOYEE" && (roleName.includes("ADMIN") || (u as any)?.isAdmin);
+        if (isAdmin) {
           router.replace("/(admin)" as any);
+        } else if (u?.userType === "EMPLOYEE") {
+          router.replace("/(employee)" as any);
         } else {
           router.replace("/(citizen)" as any);
         }
